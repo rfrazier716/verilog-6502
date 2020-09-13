@@ -3,20 +3,20 @@
 template<class T>
 class TestBench
 {
-    T* model;
 public:
+    T* dut; // The device being tested
     void tick();
-    TestBench(T* modelIn);
+    TestBench();
 };
 
 template<class T>
 void TestBench<T>::tick()
 {
-    model->eval();
+    dut->eval();
 }
 
 template<class T>
-TestBench<T>::TestBench(T* modelIn): model(modelIn)
+TestBench<T>::TestBench()
 {
-
+    dut = new T; // Assign the model the testbench manipulates
 }

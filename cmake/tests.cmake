@@ -1,5 +1,6 @@
 # Create new Target
 add_executable(test_alu
+    "test/src/verilatorCatchMain.cpp"
     "test/src/testALU.cpp"
     ${VERILATED}
 )
