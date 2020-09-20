@@ -7,8 +7,9 @@ module alu(
     input wire ADD_en, AND_en, XOR_en, OR_en, SR_en, //ALU Operations
     input wire[7:0] A_in, B_in, //input registers for operation
     input wire Carry_in, //Carry in bit
-    output wire OVFLW, Carry_out, //Overflow, carry out, and half-carry output bits
-    output wire[7:0] C_out // Result of the ALU operation
+	output wire OVFLW,
+    output reg Carry_out, //Overflow, carry out, and half-carry output bits
+    output reg[7:0] C_out // Result of the ALU operation
 );
 
     //Combinatorial logic block that performs ALU operations

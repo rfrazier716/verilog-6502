@@ -1,9 +1,7 @@
 
 `default_nettype none //stops mispelled identifiers from being turned into wires
 
-parameter PC_RESET_ADDR = 16'h0000; //Value the program counter gets reset to on 
-
-module ProgramCounter(
+ module ProgramCounter#(parameter PC_RESET_ADDR =16'h0000) (
     input wire sys_clock, // The system clock signal
     input wire reset, // Reset Signal
     input wire phase_2_rising, //Signal asserts itself for one clock cycle on the rising edge of the phase 2 clock
