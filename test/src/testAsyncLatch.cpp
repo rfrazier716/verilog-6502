@@ -51,3 +51,16 @@ TEST_CASE("Falling Edge Functional","[aSyncLatch]"){
     tb->tick();
     REQUIRE(tb->dut->rising_edge == 0x00);
 }
+
+TEST_CASE("Reset Functional","[aSyncLatch]"){
+    //When a reset occurs the shift register is reinitialized to 3'b000
+    auto* tb = new SyncTB<MODTYPE>(50000000,false); // make a testbench of the module
+    tb->dut->async_signal=1; //Drive the asynchronous Signal high
+    for(int i=0;i<3;i++){
+        //Execute multiple clock ticks to fill the shift register with logic 1's
+        tb->tick();
+    }
+    REQUIRE(tb->dut->AsynchronousLatch__DOT__shift_register==0b111);
+    tb->reset(); //Reset the system
+    REQUIRE(tb->dut->AsynchronousLatch__DOT__shift_register==0b000); 
+}

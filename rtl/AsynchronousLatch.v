@@ -18,8 +18,10 @@ module AsynchronousLatch(
 
     always@(posedge sys_clock)
     begin
-        if(reset) shift_register <=3'b0;
-        shift_register <= (shift_register >> 1) + {async_signal,2'b0}; //shift out the lowest bit and add the input signal to the highest
+        if(reset) 
+            shift_register <= 3'b0;
+        else
+            shift_register <= (shift_register >> 1) + {async_signal,2'b0}; //shift out the lowest bit and add the input signal to the highest
     end
 
     assign rising_edge = (^shift_register[1:0]) & shift_register[1]; //Rising edge when the 2LSBs differ and bit 1 is high
