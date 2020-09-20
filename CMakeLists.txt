@@ -28,6 +28,11 @@ include_directories(
     "${CMAKE_SOURCE_DIR}/verilator/obj_dir"     # generated verilator code
     "${CMAKE_SOURCE_DIR}/test")             # include directory for testbench
 
+
+IF(${REBUILD_VERILATOR})
+    INCLUDE("cmake/verilator_build.cmake")
+ENDIF()
+
 IF(${ENABLE_TESTS})
     enable_testing()
     INCLUDE("cmake/tests.cmake")
