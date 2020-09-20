@@ -15,6 +15,7 @@ class SyncTB
 public:
     T* dut; // The device being tested
     void tick(); //Execute a clock cycle
+    void reset(); //resets the part, assumes there is an input called reset
 
     SyncTB(int clockFrequency, bool trace); //Class Constructor
 };
@@ -28,6 +29,15 @@ void SyncTB<T>::tick(){
     dut->eval();
     dut->CLOCK_LINE = 0;
     dut->eval();
+}
+
+template<class T>
+void SyncTB<T>::reset(){
+    // Execute a clock cycle and update variables
+    // you need the eval at start and end, according to zipCPU
+	dut->reset=1;
+    tick();
+    dut->reset=0;
 }
 
 template<class T>
