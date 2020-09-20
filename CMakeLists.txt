@@ -1,6 +1,18 @@
 cmake_minimum_required (VERSION 3.10)
 project ("v6502")
 
+# User Defined Variables
+#-----------------------------------------------
+# Uncomment below line to rebuild/make all verilator code, otherwise will not regenerate from verilog
+SET(REBUILD_VERILATOR TRUE) 
+
+# Uncomment to build Test files
+SET(ENABLE_TESTS TRUE)
+
+
+# Do Not Edit Below This Line
+#-----------------------------------------------
+
 # set to cpp 11 standard
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,12 +28,7 @@ include_directories(
     "${CMAKE_SOURCE_DIR}/verilator/obj_dir"     # generated verilator code
     "${CMAKE_SOURCE_DIR}/test")             # include directory for testbench
 
-# Uncomment below line to rebuild/make all verilator code, otherwise will not regenerate from verilog
-SET(REBUILD_VERILATOR TRUE) 
-
-# Uncomment to build Test files
-INCLUDE("cmake/tests.cmake")
-
-# Add *.cmake files below for specific targets
-#----------------------------------------------------------
-#INCLUDE("cmake/v6502.cmake") # Thruwire Example
+IF(${ENABLE_TESTS})
+    enable_testing()
+    INCLUDE("cmake/tests.cmake")
+ENDIF()
