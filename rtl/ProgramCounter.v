@@ -9,7 +9,6 @@ module ProgramCounter(
     input wire phase_2_rising, //Signal asserts itself for one clock cycle on the rising edge of the phase 2 clock
     input wire pcl_pcl, adl_pcl, pch_pch,adh_pch, //signals that assert where to load the next PC address from, split for high and low
     input wire pcl_db, pcl_adl, pch_db,pch_adh, //signals that put the PC onto different IO buses
-    input wire inc_pcl, //wire to assert that the next program counter address should the select_register + 1
     input wire increment_pc, //signal that asserts if the program counter is incremented or not
 
     inout wire[7:0] address_l, address_h, // Address buses, can be both driven and read from 
@@ -25,34 +24,12 @@ module ProgramCounter(
     wire pcl_pcl_r, adl_pcl_r, pch_pch_r, adh_pch_r;
 
     /* verilator lint_off PINMISSING */
-    AsynchronousLatch pcl_pcl_l(
+    AsynchronousLatch loadFlags[3:0](
         .sys_clock(sys_clock),
         .reset(reset),
-        .async_signal(pcl_pcl),
-        .rising_edge(pcl_pcl_r)
+        .async_signal({pcl_pcl,adl_pcl,pch_pch,adh_pch}),
+        .rising_edge({pcl_pcl_r,adl_pcl_r,pch_pch_r,adh_pch_r})
     );
-
-    AsynchronousLatch adl_pcl_l(
-        .sys_clock(sys_clock),
-        .reset(reset),
-        .async_signal(adl_pcl),
-        .rising_edge(adl_pcl_r)
-    );
-
-    AsynchronousLatch pch_pch_l(
-        .sys_clock(sys_clock),
-        .reset(reset),
-        .async_signal(pch_pch),
-        .rising_edge(pch_pch_r)
-    );
-
-    AsynchronousLatch adh_pch_l(
-        .sys_clock(sys_clock),
-        .reset(reset),
-        .async_signal(adh_pch),
-        .rising_edge(adh_pch_r)
-    );
-
     /* verilator lint_on PINMISSING */
 
     //Synchronous Section
@@ -73,7 +50,7 @@ module ProgramCounter(
 
         //in phase 2 we load the new PC address into memory
         if(phase_2_rising)
-            program_counter<=program_counter_select+{15'b0,inc_pcl}; //Load the next program counter value     
+            program_counter<=program_counter_select+{15'b0,increment_pc}; //Load the next program counter value     
     end
 
     //Assert the PC onto the databus
