@@ -37,20 +37,22 @@ module ProgramCounter(
     begin
         if(reset)
             program_counter <= PC_RESET_ADDR; //reset the program counter address
-
-        //Check if a rising edge occured on any of the program_counter_high latches
-        if(pch_pch_r)       program_counter_select[15:8]<=program_counter[15:8];
-        else if(adh_pch_r)  program_counter_select[15:8]<=address_h;
-        else                program_counter_select[15:8]<=program_counter_select[15:8];
         
-        //Check if a rising edge occured on any of the program_counter_low latches
-        if(pcl_pcl_r)       program_counter_select[7:0]<=program_counter[7:0];
-        else if(adl_pcl_r)  program_counter_select[7:0]<=address_l;
-        else                program_counter_select[7:0]<=program_counter_select[7:0];
+        else begin
+            //Check if a rising edge occured on any of the program_counter_high latches
+            if(pch_pch_r)       program_counter_select[15:8]<=program_counter[15:8];
+            else if(adh_pch_r)  program_counter_select[15:8]<=address_h;
+            else                program_counter_select[15:8]<=program_counter_select[15:8];
+            
+            //Check if a rising edge occured on any of the program_counter_low latches
+            if(pcl_pcl_r)       program_counter_select[7:0]<=program_counter[7:0];
+            else if(adl_pcl_r)  program_counter_select[7:0]<=address_l;
+            else                program_counter_select[7:0]<=program_counter_select[7:0];
 
-        //in phase 2 we load the new PC address into memory
-        if(phase_2_rising)
-            program_counter<=program_counter_select+{15'b0,increment_pc}; //Load the next program counter value     
+            //in phase 2 we load the new PC address into memory
+            if(phase_2_rising)
+                program_counter<=program_counter_select+{15'b0,increment_pc}; //Load the next program counter value     
+        end
     end
 
     //Assert the PC onto the databus
