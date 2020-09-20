@@ -4,3 +4,4 @@ message("Building UnitTests in ${TEST_DIR}")
 #-------------------------------------------------
 include("${TEST_DIR}/test_ALU.cmake")
 include("${TEST_DIR}/test_AsynchronousLatch.cmake")
+include("${TEST_DIR}/test_ProgramCounter.cmake")
