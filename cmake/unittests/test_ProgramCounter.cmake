@@ -3,6 +3,7 @@ add_executable(test_PC
     "test/src/verilatorCatchMain.cpp"
     "test/src/testPC.cpp"
     ${VERILATED}
+    ${VERILATED_TRACE}
 )
 
 # Link the Verilator code generation as a dependency of the target
