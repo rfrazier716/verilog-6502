@@ -26,6 +26,8 @@ void logOperation(MODTYPE* module)
 TEST_CASE("Rising Edge Functional","[aSyncLatch]"){
     //When a rising edge occurs, on the next clock cycle it will the rising edge bit will be set
     auto* tb = new SyncTB<MODTYPE>(50000000,false); // make a testbench of the module
+    tb->addVCDTrace("RisingEdgeLatch.vcd");
+    tb->tick(); //initial clock line
     tb->dut->async_signal=1; //Drive the asynchronous Signal high
     tb->tick();
     REQUIRE(tb->dut->rising_edge == 0x00); //rising edge is not immediately set
@@ -42,7 +44,7 @@ TEST_CASE("Falling Edge Functional","[aSyncLatch]"){
     auto* tb = new SyncTB<MODTYPE>(50000000,false); // make a testbench of the module
     tb->dut->async_signal=1; //Drive the asynchronous Signal high
     tb->tick();
-    tb->dut->async_signal=0; //Drive teh asynchronous Signal low
+    tb->dut->async_signal=0; //Drive the asynchronous Signal low
     tb->tick();
     tb->tick();
     REQUIRE(tb->dut->falling_edge == 0x01);

@@ -3,6 +3,7 @@ add_executable(test_asyncLatch
     "test/src/verilatorCatchMain.cpp"
     "test/src/testAsyncLatch.cpp"
     ${VERILATED}
+    ${VERILATED_TRACE}
 )
 
 if(${REBUILD_VERILATOR})
