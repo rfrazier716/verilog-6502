@@ -19,13 +19,26 @@ module alu(
             Carry_out = 0;
 
             // Apply ALU Operation and put onto C_out
-            case({ADD_en, AND_en, XOR_en, OR_en, SR_en})
+
+            if(SR_en) 
+                {C_out, Carry_out} = {1'b0,A_in};
+            else if(OR_en)
+                C_out = A_in | B_in; 
+            else if(XOR_en) 
+                C_out = A_in ^ B_in; 
+            else if(AND_en) 
+                C_out = A_in & B_in;
+            else if(ADD_en) 
+                {Carry_out,C_out} = A_in + B_in + {7'b0, Carry_in};
+            else C_out = 0; 
+            //otherwise zero the output
+           /* case({ADD_en, AND_en, XOR_en, OR_en, SR_en})
                 5'b00001: {C_out, Carry_out} = {1'b0,A_in}; //Shift Right operation
                 5'b00010: C_out = A_in | B_in; // Bitwise Or Operation
                 5'b00100: C_out = A_in ^ B_in; // Exclusive Or Operation
                 5'b01000: C_out = A_in & B_in; // Bitwise AND Operation
                 default:  {Carry_out,C_out} = A_in + B_in + {7'b0, Carry_in}; //Default operation is an Add                
-            endcase
+            endcase*/
         end
 
         //Set overflow -- if two signed numbers produce a result with a different sign
