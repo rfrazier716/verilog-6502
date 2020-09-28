@@ -61,9 +61,7 @@ template<class T>
 void SyncTB<T>::addVCDTrace(const char* traceName)
 {
     //Adds VCDTrace output to your system
-    printf("in the add function\n");
     if(!tbTrace){ //If the Trace doesn't already exist
-        printf("Hello\n");
         tbTrace = new VerilatedVcdC;
 		dut->trace(tbTrace, 00);
 		tbTrace->open(traceName);

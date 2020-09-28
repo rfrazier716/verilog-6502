@@ -22,18 +22,21 @@ void latchDataLine(SyncTB<MODTYPE>* tb, T* dataLine){
     tb->tick();
     tb->tick();
     *dataLine=0;
+    tb->tick();
 }
 
 void cyclePhase2(SyncTB<MODTYPE>* tb){
     tb->dut->phase_2_rising=1;
     tb->tick();
     tb->dut->phase_2_rising=0;
+    tb->tick();
 }
 
 //Cases to Test
 //Program counter reset
 TEST_CASE("Reset Functional","[PC]"){
     auto* tb = new SyncTB<MODTYPE>(50000000,false); // make a new module test bench
+    tb->addVCDTrace("PCReset.vcd");
     REQUIRE(tb->dut->ProgramCounter__DOT__program_counter==0x0000); //Assert that the PC initializes to zero
     auto newPCValue=0xF030;
     tb->dut->ProgramCounter__DOT__program_counter=newPCValue; // assign a new address to the PC
@@ -45,6 +48,7 @@ TEST_CASE("Reset Functional","[PC]"){
 //Incrementing the PC when in phase 2 of the clock
 TEST_CASE("PC Increments on Phase 2 rising edge","[PC]"){
     auto* tb = new SyncTB<MODTYPE>(50000000,false); // make a new module test bench
+    tb->addVCDTrace("PCIncrement.vcd");
 
     //Load the current PC address into the next address
     latchDataLine(tb, &tb->dut->pcl_pcl);
@@ -59,31 +63,42 @@ TEST_CASE("PC Increments on Phase 2 rising edge","[PC]"){
     //If we don't relatch the increment register nothing changes
     REQUIRE(tb->dut->ProgramCounter__DOT__program_counter==0x0001);
 
+    //Relatching will put x0001 into the PCS register
+    latchDataLine(tb, &tb->dut->pcl_pcl);
+    latchDataLine(tb, &tb->dut->pch_pch);
+    //Cycling phase 2 will put x0002 onto the PC
+    cyclePhase2(tb);
+    REQUIRE(tb->dut->ProgramCounter__DOT__program_counter==0x0002);
+
+
     tb->dut->increment_pc=0;
     cyclePhase2(tb);
-    //If we drop the increment flag back to zero without updating the address it goes back to zero
-    REQUIRE(tb->dut->ProgramCounter__DOT__program_counter==0x0000);
+    //If we drop the increment flag back to zero without updating the address it goes back to one
+    REQUIRE(tb->dut->ProgramCounter__DOT__program_counter==0x0001);
 }
 
 TEST_CASE("Latching the Program Counter Select Register","[PC]"){
     auto* tb = new SyncTB<MODTYPE>(50000000,false); // make a new module test bench
+    tb->addVCDTrace("PCSLatch.vcd");
+    tb->tick();
     tb->dut->ProgramCounter__DOT__program_counter=0xDEAD;
     REQUIRE(tb->dut->ProgramCounter__DOT__program_counter_select==0x0000); //register initializes to zero
 
     //latching PCS from PC
-    //TODO: Figure out if the latch is working right, plot with GTKWAVE
+    latchDataLine(tb,&tb->dut->pch_pch);
     REQUIRE(tb->dut->ProgramCounter__DOT__program_counter_select==0xDE00);
     latchDataLine(tb,&tb->dut->pcl_pcl);
     REQUIRE(tb->dut->ProgramCounter__DOT__program_counter_select==0xDEAD);
 
     //latching PCS from the Address bus
     tb->reset(); //reset the system
-    tb->dut->address_l=0xEF;
-    tb->dut->address_h=0xBE;
-    latchDataLine(tb, &tb->dut->adh_pch);
-    REQUIRE(tb->dut->ProgramCounter__DOT__program_counter_select==0xBE00);
+    tb->dut->ProgramCounter__DOT__program_counter=0xA5A5; //put a value on the PC to make sure it doesn't latch
+    tb->dut->ProgramCounter__DOT__program_counter_select=0xFFFF; //put a value on the PCS to know it's changed
+    latchDataLine(tb, &tb->dut->adh_pch); //pull the address wire (0x00) into PCH
+    REQUIRE(tb->dut->ProgramCounter__DOT__program_counter_select==0x00FF);
     latchDataLine(tb, &tb->dut->adl_pcl);
-    REQUIRE(tb->dut->ProgramCounter__DOT__program_counter_select==0xBEEF);
+    REQUIRE(tb->dut->ProgramCounter__DOT__program_counter_select==0x0000);
+    delete tb;
 }
 
 //Keeping the program counter constant on phase 2 of the clock

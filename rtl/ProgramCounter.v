@@ -34,7 +34,10 @@
     always@(posedge sys_clock)
     begin
         if(reset)
-            program_counter <= PC_RESET_ADDR; //reset the program counter address
+            begin
+                program_counter <= PC_RESET_ADDR; //reset the program counter address
+                program_counter_select <= PC_RESET_ADDR;
+            end
         
         else begin
             //Check if a rising edge occured on any of the program_counter_high latches
