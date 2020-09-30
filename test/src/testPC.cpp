@@ -17,20 +17,11 @@
 #include "inc/catch.hpp"
 
 template<class T>
-void latchDataLine(SyncTB<MODTYPE>* tb, T* dataLine){
-    *dataLine=1;
-    tb->tick();
-    tb->tick();
-    *dataLine=0;
-    tb->tick();
+void logSignal(T signal)
+{
+    printf("0x%02x\n",signal);
 }
 
-void cyclePhase2(SyncTB<MODTYPE>* tb){
-    tb->dut->phase_2_rising=1;
-    tb->tick();
-    tb->dut->phase_2_rising=0;
-    tb->tick();
-}
 
 //Cases to Test
 //Program counter reset
@@ -49,7 +40,14 @@ TEST_CASE("Reset Functional","[PC]"){
 TEST_CASE("PC Increments on Phase 2 rising edge","[PC]"){
     auto* tb = new SyncTB<MODTYPE>(50000000,false); // make a new module test bench
     tb->addVCDTrace("PCIncrement.vcd");
-
+    tb->tick(); //initical clock tick
+    tb->dut->address_l=0xA5;
+    for(int j=0;j<10;j++)
+    {
+        tb->tick();
+    }
+}
+/*
     //Load the current PC address into the next address
     latchDataLine(tb, &tb->dut->pcl_pcl);
     latchDataLine(tb, &tb->dut->pch_pch);
@@ -100,7 +98,7 @@ TEST_CASE("Latching the Program Counter Select Register","[PC]"){
     REQUIRE(tb->dut->ProgramCounter__DOT__program_counter_select==0x0000);
     delete tb;
 }
-
+*/
 //Keeping the program counter constant on phase 2 of the clock
 //Loading the next PC Address from the existing PC Address
 //Loading the next PC Address from the address bus
