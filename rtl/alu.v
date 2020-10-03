@@ -1,46 +1,79 @@
-//6502 ALU Model
-// Does not implement Decimal Mode
+/*
+ * 8-bit ALU implemented with wishbone pipeline bus
+ * Registers:
+ *  A - Accumulator 
+ *  B - B input register
+ *
+ * Write Addresses:
+ * 0x00 - Register A
+ * 0x01 - Register B 
+ * 
+ * Read Addresses
+ * 0x00 - Register A
+ * 0x01 - Register B
+ * 0x80 - Add - Returns A+B with flags
+ * 0x81 - Add with Carry - Returns A&B with a carry input
+ * More to be implemented when proved that this works out
+*/
+
+
+
+
 
 `default_nettype none //stops mispelled identifiers from being turned into wires
 
-module alu(
-    input wire ADD_en, AND_en, XOR_en, OR_en, SR_en, //ALU Operations
-    input wire[7:0] A_in, B_in, //input registers for operation
-    input wire Carry_in, //Carry in bit
-	output wire OVFLW,
-    output reg Carry_out, //Overflow, carry out, and half-carry output bits
-    output reg[7:0] C_out // Result of the ALU operation
+
+module alu_wb(
+    input wire i_clk, // System clock
+    input wire reset, // Reset Signal
+    input wire i_wb_stb, // Input_WishBone_Standby -- signal that is true for any bus transaction request
+    input wire i_wb_we, // Input_WishBone_WriteEnable -- asserted when a write request takes place
+    input wire[3:0] i_wb_addr, //Input_WishBone_Address -- the address of the request
+    input wire[7:0] i_wb_data, //Input_WishBone_Data -- The Data to be written
+    
+    output wire o_wb_ack, //Output_WishBone_Acknowledge -- Slaves Response indicating request was acknowledged
+    output wire o_wb_stall, //Output_WishBone_Stall -- controls flow of data to the slave, true when slave cannot accept a request
+    output wire o_wb_data, //Output_WishBone_Data -- output line
 );
+    reg[7:0] a, b, out, o_data; // internal registers 
+    reg overflow, carry_out, zero
+    initial a, b, out, flags, operation = 8'b0; // initial values for all registers is zero
 
-    //Combinatorial logic block that performs ALU operations
-    always@(*)
-        begin
-            // Default case for Carry_out incase it is not assigned
-            Carry_out = 0;
+    /***********************************
+     *
+     * Wishbone communication section
+     *
+     ***********************************/
 
-            // Apply ALU Operation and put onto C_out
+    //handling writes to slave
+    //can update registers A or B, the operation register, and the flags register
+    always@(posedge i_clk) begin
+        if( i_wb_stb && i_wb_we && !o_wb_stall)
+        case(i_wb_addr)
+            8'h00: a <= i_wb_data
+            8'h01: b <= i_wb_data
+            default: begin end // do nothing by default
+        endcase
+    end
 
-            if(SR_en) 
-                {C_out, Carry_out} = {1'b0,A_in};
-            else if(OR_en)
-                C_out = A_in | B_in; 
-            else if(XOR_en) 
-                C_out = A_in ^ B_in; 
-            else if(AND_en) 
-                C_out = A_in & B_in;
-            else if(ADD_en) 
-                {Carry_out,C_out} = A_in + B_in + {7'b0, Carry_in};
-            else C_out = 0; 
-            //otherwise zero the output
-           /* case({ADD_en, AND_en, XOR_en, OR_en, SR_en})
-                5'b00001: {C_out, Carry_out} = {1'b0,A_in}; //Shift Right operation
-                5'b00010: C_out = A_in | B_in; // Bitwise Or Operation
-                5'b00100: C_out = A_in ^ B_in; // Exclusive Or Operation
-                5'b01000: C_out = A_in & B_in; // Bitwise AND Operation
-                default:  {Carry_out,C_out} = A_in + B_in + {7'b0, Carry_in}; //Default operation is an Add                
-            endcase*/
-        end
+    //handling read requests
+    always@(posedge i_clk) begin
+        if( i_wb_stb && (!i_wb_we) && (!o_wb_stall))
+        case(i_wb_addr)
+            8'h00: o_data <= a; // put register a onto the data bus
+            8'h01: o_data <= b; // put register b onto the data bus
+            default : begin end // do nothing by default
+    end
 
-        //Set overflow -- if two signed numbers produce a result with a different sign
-        assign OVFLW = ( A_in[7] && B_in[7] && (!C_out[7])) || ((!A_in[7]) && (!B_in[7]) && C_out[7]); 
+    //only put the read requested data on the bus if it's a valid request
+    assign o_wb_data = i_wb_stb ? o_data : 8'hZZ;
+
+    //Setting the Acknowledge when the request is complete
+    always@(posedge i_clk) begin
+        o_wb_ack <= i_wb_stb && !o_wb_stall
+    end
+
+    //all our operations happen on a single clock 
+    //Should never have a case where we cannot accept input
+    assign o_wb_stall = 1'b0; 
 endmodule
