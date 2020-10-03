@@ -3,6 +3,7 @@ add_executable(test_alu
     "test/src/verilatorCatchMain.cpp"
     "test/src/testALU.cpp"
     ${VERILATED}
+    ${VERILATED_TRACE}
 )
 # Link the Verilator code generation as a dependency of the target
 if(${REBUILD_VERILATOR})

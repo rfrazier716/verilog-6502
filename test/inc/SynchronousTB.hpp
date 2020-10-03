@@ -10,7 +10,7 @@
 template<class T>
 class SyncTB 
 {
-    bool traceOutput; //Whether or not to trace the output to a gtkwave file
+protected:
     const int clockFrequency; //The system Clock frequency;
     double timeStep; //How long a timestep is, in nanoseconds
 
@@ -23,7 +23,7 @@ public:
     void reset(); //resets the part, assumes there is an input called reset
     void addVCDTrace(const char*);
 
-    SyncTB(int clockFrequency, bool traceOutput); //Class Constructor
+    SyncTB(int clockFrequency); //Class Constructor
 };
 
 template<class T>
@@ -69,7 +69,7 @@ void SyncTB<T>::addVCDTrace(const char* traceName)
 }
 
 template<class T>
-SyncTB<T>::SyncTB(int fClock, bool trace): traceOutput(trace), clockFrequency(fClock){
+SyncTB<T>::SyncTB(int fClock): clockFrequency(fClock){
     dut = new T; // Assign the model the testbench manipulates
     tickCount=0; // set the tick count to zero
     Verilated::traceEverOn(true);

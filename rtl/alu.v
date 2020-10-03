@@ -22,22 +22,22 @@
 
 `default_nettype none //stops mispelled identifiers from being turned into wires
 
-
-module alu_wb(
+/* verilator lint_off UNUSED */
+module alu(
     input wire i_clk, // System clock
     input wire reset, // Reset Signal
     input wire i_wb_stb, // Input_WishBone_Standby -- signal that is true for any bus transaction request
     input wire i_wb_we, // Input_WishBone_WriteEnable -- asserted when a write request takes place
-    input wire[3:0] i_wb_addr, //Input_WishBone_Address -- the address of the request
+    input wire[7:0] i_wb_addr, //Input_WishBone_Address -- the address of the request
     input wire[7:0] i_wb_data, //Input_WishBone_Data -- The Data to be written
     
     output wire o_wb_ack, //Output_WishBone_Acknowledge -- Slaves Response indicating request was acknowledged
     output wire o_wb_stall, //Output_WishBone_Stall -- controls flow of data to the slave, true when slave cannot accept a request
-    output wire o_wb_data, //Output_WishBone_Data -- output line
+    output wire[7:0] o_wb_data //Output_WishBone_Data -- output line
 );
-    reg[7:0] a, b, out, o_data; // internal registers 
-    reg overflow, carry_out, zero
-    initial a, b, out, flags, operation = 8'b0; // initial values for all registers is zero
+    reg[7:0] a, b, o_data; // internal registers 
+    reg overflow, carry_out, zero, negative; //uC status flags
+    initial {a, b, o_data, overflow, carry_out, zero, negative} = 0; // initial values for all registers is zero
 
     /***********************************
      *
@@ -50,19 +50,20 @@ module alu_wb(
     always@(posedge i_clk) begin
         if( i_wb_stb && i_wb_we && !o_wb_stall)
         case(i_wb_addr)
-            8'h00: a <= i_wb_data
-            8'h01: b <= i_wb_data
+            8'h00: a <= i_wb_data;
+            8'h01: b <= i_wb_data;
             default: begin end // do nothing by default
         endcase
     end
 
     //handling read requests
     always@(posedge i_clk) begin
-        if( i_wb_stb && (!i_wb_we) && (!o_wb_stall))
+        if( i_wb_stb && (!o_wb_stall))
         case(i_wb_addr)
             8'h00: o_data <= a; // put register a onto the data bus
             8'h01: o_data <= b; // put register b onto the data bus
             default : begin end // do nothing by default
+        endcase
     end
 
     //only put the read requested data on the bus if it's a valid request
@@ -70,7 +71,7 @@ module alu_wb(
 
     //Setting the Acknowledge when the request is complete
     always@(posedge i_clk) begin
-        o_wb_ack <= i_wb_stb && !o_wb_stall
+        o_wb_ack <= i_wb_stb && !o_wb_stall;
     end
 
     //all our operations happen on a single clock 
