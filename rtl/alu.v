@@ -37,6 +37,7 @@ module alu(
 );
     reg[7:0] a, b, o_data; // internal registers 
     reg overflow, carry_out, zero, negative; //uC status flags
+    reg o_wb_ack_r;
     initial {a, b, o_data, overflow, carry_out, zero, negative} = 0; // initial values for all registers is zero
 
     /***********************************
@@ -68,10 +69,11 @@ module alu(
 
     //only put the read requested data on the bus if it's a valid request
     assign o_wb_data = i_wb_stb ? o_data : 8'hZZ;
+    assign o_wb_ack = o_wb_ack_r;
 
     //Setting the Acknowledge when the request is complete
     always@(posedge i_clk) begin
-        o_wb_ack <= i_wb_stb && !o_wb_stall;
+        o_wb_ack_r <= i_wb_stb && !o_wb_stall;
     end
 
     //all our operations happen on a single clock 
