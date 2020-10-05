@@ -35,10 +35,11 @@ module alu(
     output wire o_wb_stall, //Output_WishBone_Stall -- controls flow of data to the slave, true when slave cannot accept a_r request
     output wire[7:0] o_wb_data //Output_WishBone_Data -- output line
 );
+
     // ALU input/output and status registers
     reg[7:0] a_r, b_r, c_r;
     reg[7:0] flags, o_data_r; // internal registers 
-    initial {a_r,a_r,c_r,flags,o_data_r} = 0; //initialize registers to zero
+    initial {a_r,b_r,c_r,flags,o_data_r} = 0; //initialize registers to zero
 
     // ALU implementation registers
     reg[7:0] add_r, addc_r;
@@ -47,11 +48,11 @@ module alu(
     reg overflow, carry_out, zero, negative; //uC status flags
     reg o_wb_ack_r; //acknowledge register
 
-    /***********************************
-     *
-     * Wishbone communication section
-     *
-     ***********************************/
+    //***********************************
+    // *
+    // * Wishbone communication section
+    // *
+    //***********************************
 
     //handling writes to slave
     //can update registers A or B, the operation register, and the flags register
@@ -65,6 +66,7 @@ module alu(
     end
 
     //handling read requests
+
     always@(*) begin 
         case(i_wb_addr)
             8'h00: o_data_r = a_r; //put the a_register on the data bus register
@@ -76,7 +78,7 @@ module alu(
 
     //updating alu operation when associated register is read
     always@(posedge i_clk) begin
-        flags = flags | {negative, overflow, 4'b0, zero, 0}; //always update the flags based on what's on the input and output
+        flags <= flags | {negative, overflow, 4'b0, zero, 1'b0}; //always update the flags based on what's on the input and output
         if( i_wb_stb && (!o_wb_stall))
         case(i_wb_addr)
             8'h80: begin // add without carry in
@@ -118,5 +120,4 @@ module alu(
     assign negative = c_r[7]; //Negative is the MSB of the output
     assign zero = |c_r; // zero is the bitwise or of the 
     assign overflow = ( a_r[7] && b_r[7] && (!c_r[7])) || ((!a_r[7]) && (!b_r[7]) && c_r[7]); //overflow if output is different sign than inputs
-
 endmodule

@@ -9,7 +9,7 @@ class WishboneTB: public SyncTB<T>
 public:
     WishboneTB(int clockFrequency); // Class Constructor
     void wbSingleWrite(int wbAddress, int wbData);
-    //int wbRead(int addr);
+    int wbSingleRead(int addr);
 };
 
 template<class T>
@@ -30,5 +30,19 @@ void WishboneTB<T>::wbSingleWrite(int wbAddress, int wbData)
     this->tick(); // tick the clock
     this->dut->i_wb_we = 0; // assert write enable low again
     this->dut->i_wb_stb = 0; //lower the standby because the single cycle is over
-    this->tick();
+    //this->tick();
+}
+
+template<class T>
+int WishboneTB<T>::wbSingleRead(int wbAddress)
+{
+    int returnValue = 0x00;
+    this->dut->i_wb_addr = wbAddress; // put the address onto the address bus
+    this->dut->i_wb_we = 0; // put write enable low 
+    this->dut->i_wb_stb = 1; 
+    this->tick(); // tick the clock
+    returnValue = this->dut->o_wb_data;
+    this->dut->i_wb_stb = 0; //lower the standby because the single cycle is over
+    //this->tick();
+    return returnValue;
 }
