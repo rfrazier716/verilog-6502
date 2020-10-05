@@ -38,6 +38,13 @@ TEST_CASE("ALU Wishbone Write Functional","[alu]")
 	auto* tb = new WishboneTB<MODTYPE>(50000000); // make a testbench of our module
 	tb->addVCDTrace("WishboneWrite.vcd");
 	tb->tick();
-	tb->wbSingleWrite(0x00, 0xA5);
+	tb->wbSingleWrite(0x00, 0xA0);
+	tb->wbSingleWrite(0x01, 0xF0);
+	tb->wbSingleRead(0x80); // Read an add with no carry
 	tb->tick();
+	tb->wbSingleWrite(0x00, 0x80);
+	tb->wbSingleWrite(0x01, 0x81);
+	tb->wbSingleRead(0x80); // Read an add with no carry
+	tb->tick();
+	tb->wbSingleRead(0x02); // Read the flags register
 }
