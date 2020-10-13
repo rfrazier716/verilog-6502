@@ -77,6 +77,9 @@ module alu(
     end
 
     //updating alu operation when associated register is read
+    // Should have the upper 8 bits be the status register bits as set by the requested operation
+    // lower 7 bits are the data of the requested operation
+    // to return a read request in one clock cycle need to have already calculated every operation and flag in parallel 
     always@(posedge i_clk) begin
         flags <= flags | {negative, overflow, 4'b0, zero, 1'b0}; //always update the flags based on what's on the input and output
         if( i_wb_stb && (!o_wb_stall))
@@ -113,6 +116,7 @@ module alu(
     // ALU Operation
     always@(*) begin
         {add_cout_r, add_r} = a_r + b_r; // an addition operation effects the carry out bit
+        
         {addc_cout_r, addc_r} = a_r+ b_r + 8'b1; //addition with carry in
     end
 
